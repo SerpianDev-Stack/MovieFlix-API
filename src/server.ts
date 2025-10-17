@@ -7,47 +7,37 @@ const prisma = new PrismaClient();
 
 app.use(express.json());
 
-app.get("/movies", async (_, res) => {
-    const movies = await prisma.movie.findMany({
-        orderBy: {
-            title: "asc",
-        },
-        include: {
-            genres: true,
-            languages: true
-        }
-    });
+// PUT /movies/:id
+app.put("/movies/:id", async (req, res) => {
+    const id = Number(req.params.id);
 
-    res.json(movies);
-});
+    // Converte release_date, se vier no corpo
+    const data = { ...req.body };
+    if (data.release_date) {
+        data.release_date = new Date(data.release_date);
+    }
 
-app.post("/movies", async (req, res) => {
-    const { title, genre_id, language_id, oscar_count, release_date } = req.body;
     try {
-
-        const movieWhiteSameTitle = await prisma.movie.findFirst({
-            where: { title: { equals: title, mode: "insensitive" } }
-        });
-
-        if (movieWhiteSameTitle) {
-            return res.status(409).send({ message: "Já existe um filme cadastrado com este título" });
+        // Verifica se o filme existe
+        const movie = await prisma.movie.findUnique({ where: { id } });
+        if (!movie) {
+            return res.status(404).json({ message: "Filme não encontrado" });
         }
 
-        await prisma.movie.create({
-            data: {
-                title,
-                genre_id,
-                language_id,
-                oscar_count,
-                release_date: new Date(release_date)
-            }
+        // Atualiza os campos recebidos
+        const updatedMovie = await prisma.movie.update({
+            where: { id },
+            data,
         });
-    } catch {
-        return res.status(500).send({ message: "Erro ao cadastrar um filme" });
-    };
-    res.status(201);
+
+        return res.status(200).json(updatedMovie);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Falha ao atualizar o registro do filme" });
+    }
 });
 
 app.listen(port, () => {
-    console.log("Servidor em execução");
+    console.log(`Servidor em execução na porta ${port}`);
 });
+
