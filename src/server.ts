@@ -7,7 +7,6 @@ const prisma = new PrismaClient();
 
 app.use(express.json());
 
-// PUT /movies/:id
 app.put("/movies/:id", async (req, res) => {
     const id = Number(req.params.id);
 
@@ -51,6 +50,32 @@ app.delete("/movies/:id", async (req, res) => {
         res.status(200).send();
     } catch {
         return res.status(500).send({ message: "Não foi possível remover o filme" });
+    }
+
+});
+
+app.get("/movies/:genreName", async (req, res) => {
+
+
+    try {
+        const moviesFilteredGenreName = await prisma.movie.findMany(({
+            include: {
+                genres: true,
+                languages: true
+            },
+            where: {
+                genres: {
+                    name: {
+                        equals: req.params.genreName,
+                        mode: "insensitive"
+                    }
+                }
+            }
+        }));
+
+        res.status(200).send(moviesFilteredGenreName);
+    } catch {
+        res.status(500).send({ message: "Falha ao filtrar filmes por gênero" });
     }
 
 });
