@@ -78,7 +78,7 @@
                         "name": "id",
                         "in": "path",
                         "required": true,
-                        "description": "ID do filme a ser atualizado",
+                        "description": "ID do filme a ser removido",
                         "schema": {
                             "type": "integer"
                         }
@@ -93,6 +93,42 @@
                     },
                     "500": {
                         "description": "Não foi possível remover o filme"
+                    }
+                }
+            }
+        },
+        "/movies/{genreName}": {
+            "get": {
+                "tags": [
+                    "Movie"
+                ],
+                "summary": "Filtrar filmes por gênero",
+                "parameters": [
+                    {
+                        "name": "genreName",
+                        "in": "path",
+                        "required": true,
+                        "description": "Nome do gênero do filme",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Movie"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Falha ao filtrar filmes por gênero"
                     }
                 }
             }
