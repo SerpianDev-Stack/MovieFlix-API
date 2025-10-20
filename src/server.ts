@@ -1,29 +1,30 @@
 import express from "express";
 import { PrismaClient } from "./generated/prisma/index.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "../swagger.json" with { type: "json" };
 
 const port = 3000;
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.put("/movies/:id", async (req, res) => {
     const id = Number(req.params.id);
 
-    // Converte release_date, se vier no corpo
     const data = { ...req.body };
     if (data.release_date) {
         data.release_date = new Date(data.release_date);
     }
 
     try {
-        // Verifica se o filme existe
+
         const movie = await prisma.movie.findUnique({ where: { id } });
         if (!movie) {
             return res.status(404).json({ message: "Filme não encontrado" });
         }
 
-        // Atualiza os campos recebidos
         const updatedMovie = await prisma.movie.update({
             where: { id },
             data,
